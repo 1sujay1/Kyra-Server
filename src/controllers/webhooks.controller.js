@@ -1,4 +1,4 @@
-import Lead from "../models/Lead.js";
+// import Lead from "../models/Lead.js"; // DB saving commented out per requirement
 import { env } from "../config/env.js";
 import { validateIndianPhoneNumber } from "../utils/phone.js";
 import { sendLeadEmailNotification } from "../services/email.service.js";
@@ -142,6 +142,10 @@ async function processAndSaveWebhookLead({
 
   console.log(`📦 [Processing Webhook Lead] Name: ${fullName} | Phone: ${phoneCheck.formatted}`);
 
+  // =========================================================================
+  // 🗄️ DATABASE SAVING (COMMENTED OUT FOR NOW - NO DB DEPENDENCY)
+  // =========================================================================
+  /*
   let leadDoc = null;
   try {
     leadDoc = await Lead.create({
@@ -161,30 +165,25 @@ async function processAndSaveWebhookLead({
   } catch (err) {
     console.error("❌ [Webhook Lead DB Save Error]:", err.message);
   }
+  */
+  // =========================================================================
 
   // Dispatch email notification
-  sendLeadEmailNotification({
-    lead_id: leadDoc?._id ? String(leadDoc._id) : undefined,
-    full_name: fullName,
-    name: fullName,
-    phone: phoneCheck.isValid ? phoneCheck.formatted : phone,
-    email,
-    project_name: projectName,
-    source,
-    campaign_name: campaignName,
-    message: `Lead captured via ${source}`,
-  })
-    .then(async () => {
-      if (leadDoc?._id) {
-        await Lead.findByIdAndUpdate(leadDoc._id, { mailStatus: "success" }).catch(() => {});
-      }
-    })
-    .catch(async (mailErr) => {
-      console.error("❌ [Webhook Email Alert Error]:", mailErr.message);
-      if (leadDoc?._id) {
-        await Lead.findByIdAndUpdate(leadDoc._id, { mailStatus: "failed" }).catch(() => {});
-      }
+  try {
+    await sendLeadEmailNotification({
+      full_name: fullName,
+      name: fullName,
+      phone: phoneCheck.isValid ? phoneCheck.formatted : phone,
+      email,
+      project_name: projectName,
+      source,
+      campaign_name: campaignName,
+      message: `Lead captured via ${source}`,
     });
+    console.log(`✅ [Webhook Email Alert Sent] Project: "${projectName}" | Lead: "${fullName}"`);
+  } catch (mailErr) {
+    console.error("❌ [Webhook Email Alert Error]:", mailErr.message);
+  }
 }
 
 // Backward-compatible aliases

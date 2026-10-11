@@ -10,18 +10,17 @@ async function startServer() {
   console.log("   🚀 KYRA GROUP INDIA - BACKEND API SERVER STARTING...         ");
   console.log("----------------------------------------------------------------");
 
-  // 1. Connect Database
-  await connectDB();
+  // 1. Connect Database (Commented out per requirement - no DB saving needed for now)
+  // await connectDB();
 
   // 2. Start HTTP Server
   const server = http.createServer(app);
 
   server.listen(PORT, () => {
     console.log(`✅ Server is live on http://localhost:${PORT}`);
+    console.log(`   - Universal Contact: POST http://localhost:${PORT}/api/contact`);
     console.log(`   - Landing Inbound:   POST http://localhost:${PORT}/api/leads/landing`);
     console.log(`   - Classic Contact:   POST http://localhost:${PORT}/api/v1/contact`);
-    console.log(`   - Meta Webhook GET:  GET  http://localhost:${PORT}/api/webhooks/leads`);
-    console.log(`   - Meta Webhook POST: POST http://localhost:${PORT}/api/webhooks/leads`);
     console.log(`   - Health Ping:       GET  http://localhost:${PORT}/api/ping`);
     console.log("----------------------------------------------------------------");
   });

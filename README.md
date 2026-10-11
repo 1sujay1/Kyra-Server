@@ -1,30 +1,20 @@
-# Kyra Group India - Backend API Server
+# Universal Contact Form Email Server
 
-High-performance, lightweight Node.js/Express backend server for **Kyra Group India** (`kyragroupindia.com`). Built for landing page contact form submissions, Meta/Facebook Lead Ads webhook ingestion, MongoDB persistence, and automated Nodemailer email notifications.
+Lightweight, high-performance Node.js/Express backend API server for handling **contact form submissions** across multiple websites and projects. Built with **Nodemailer (Gmail SMTP)** to dispatch instant, branded email notifications containing the buyer's contact details and dynamic **Project Name**.
+
+> **Note:** Database saving is deliberately decoupled and commented out so the server runs completely stateless without any MongoDB connection requirement.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Highlights
 
-- **Landing Page Contact Form Ingestion**:
-  - Primary endpoint: `POST /api/leads/landing`
-  - Backward-compatible alias: `POST /api/v1/contact`
-  - Ingests buyer name, phone, email, project, budget, purpose, intent, visit date, notes, and geolocation.
-  - Indian 10-digit mobile number validation and normalization.
-  - Automatic duplicate lead detection in MongoDB.
-- **Meta / Facebook Lead Ads Integration**:
-  - Webhook verification endpoint: `GET /api/webhooks/leads`
-  - Leadgen webhook ingestion: `POST /api/webhooks/leads`
-  - Automated Meta Graph API querying for lead field data if only `leadgen_id` is delivered.
-- **Nodemailer Instant Email Alerts**:
-  - Dispatches branded, mobile-responsive HTML email notifications to sales leadership via Gmail SMTP.
-  - Formatted with instant "📞 Call Buyer Now" and "💬 WhatsApp Lead" click-to-chat action buttons.
-  - Supports primary receiver and multi-party CC recipients.
-- **MongoDB Persistence**:
-  - Stores leads into the `leads` collection with indexes, timestamps, and deduplication records.
-- **Security & Reliability**:
-  - Permissive CORS pre-configured for `kyragroupindia.com`, `farmland.kyragroupindia.com`, and localhost.
-  - HTML input sanitization to eliminate XSS injection risks.
+- **Universal Multi-Project Support**: Pass any `project_name` (e.g. `Kyra Farmlands`, `Clevix Tech`, `Godrej Homes`, `My Portfolio`) and the email subject, header, and sender display name dynamically adapt to that project.
+- **Instant Nodemailer Email Alerts**: Emails are sent with formatted contact details and quick-action buttons:
+  - 📞 **"Call Buyer Now"** (`tel:+91...`)
+  - 💬 **"WhatsApp Lead"** (`https://wa.me/...`)
+- **Zero Database Dependency**: No MongoDB or SQL setup required to run or deploy.
+- **Permissive CORS Enabled**: Accepts cross-origin form submissions from any frontend website, landing page, or localhost.
+- **Indian Mobile Validation**: Normalizes 10-digit Indian phone numbers cleanly (`+91 98765 43210`).
 
 ---
 
@@ -32,26 +22,26 @@ High-performance, lightweight Node.js/Express backend server for **Kyra Group In
 
 ```
 kyra/server/
-├── .env                         # Environment variables (private)
+├── .env                         # Private SMTP & server configuration
 ├── .env.example                 # Example environment template
 ├── .gitignore                   # Git ignore rules
 ├── package.json                 # Project dependencies & scripts
 ├── README.md                    # Documentation
 └── src/
     ├── server.js                # Server entry point & graceful shutdown
-    ├── app.js                   # Express application & middleware setup
+    ├── app.js                   # Express application & CORS middleware
     ├── config/
-    │   ├── db.js                # Mongoose MongoDB connection manager
+    │   ├── db.js                # (Optional) MongoDB connector (commented out)
     │   └── env.js               # Environment variables loader
     ├── controllers/
-    │   ├── leads.controller.js  # Contact form validation & submission logic
+    │   ├── leads.controller.js  # Universal contact form submission & email trigger
     │   └── webhooks.controller.js # Meta webhook handshake & lead ingestion
     ├── models/
-    │   └── Lead.js              # Mongoose schema for leads collection
+    │   └── Lead.js              # (Optional) Mongoose schema (commented out)
     ├── routes/
     │   ├── index.js             # Root router aggregator
-    │   ├── leads.routes.js      # /api/leads/landing & /api/v1/contact
-    │   └── webhooks.routes.js   # /api/webhooks/leads & /api/v1/webhook
+    │   ├── leads.routes.js      # /api/contact, /api/leads/landing, /api/v1/contact
+    │   └── webhooks.routes.js   # /api/webhooks/leads, /api/v1/webhook
     ├── services/
     │   ├── email.service.js     # Nodemailer email alert dispatcher
     │   └── meta.service.js      # Meta Graph API lead fetcher
@@ -73,34 +63,23 @@ npm install
 
 ### 2. Environment Configuration
 
-Copy `.env.example` to `.env` and fill in your credentials:
+Copy `.env.example` to `.env` and configure your Gmail SMTP App Password:
 
-```bash
-cp .env.example .env
+```env
+PORT=5000
+NODE_MAILER_EMAIL=your-gmail@gmail.com
+NODE_MAILER_PASSWORD=your-16-char-app-password
+NODE_MAILER_RECEIVER_EMAIL=your-receiver@gmail.com
+NODE_MAILER_CC_EMAILS=["cc1@gmail.com", "cc2@gmail.com"]
 ```
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `PORT` | HTTP server port | `5000` |
-| `NODE_ENV` | Environment mode (`development` or `production`) | `development` |
-| `MONGO_URI` | MongoDB connection string | `mongodb+srv://...` |
-| `ALLOWED_ORIGINS` | Allowed CORS origins (comma-separated or `*`) | `*` |
-| `NODE_MAILER_EMAIL` | Sender Gmail address | `sujaygowdag333@gmail.com` |
-| `NODE_MAILER_PASSWORD` | Gmail App Password (16 characters) | `keou mqnl ykyl rydk` |
-| `NODE_MAILER_RECEIVER_EMAIL` | Sales team notification recipient | `sujaymaster111@gmail.com` |
-| `NODE_MAILER_CC_EMAILS` | JSON array of CC email addresses | `["sujaymastern@gmail.com", "visupriya.udt@gmail.com"]` |
-| `META_VERIFY_TOKEN` | Secret token configured in Meta App Webhook | `kyra_meta_webhook_secret_2026` |
-| `META_PAGE_ACCESS_TOKEN` | Meta Graph API Page Access Token | `your-page-access-token` |
-
-### 3. Run Development Server
+### 3. Start the Server
 
 ```bash
+# Development mode
 npm run dev
-```
 
-### 4. Run Production Server
-
-```bash
+# Production mode
 npm start
 ```
 
@@ -108,68 +87,58 @@ npm start
 
 ## 📡 API Reference
 
-### 1. Landing Page Lead Submission
+### 1. Universal Contact Form Submission
 
-- **Endpoint**: `POST /api/leads/landing` (or `POST /api/v1/contact`)
-- **Headers**: `Content-Type: application/json`
+* **Method**: `POST`
+* **Endpoints** (all accept the exact same payload):
+  * `http://localhost:5000/api/contact`
+  * `http://localhost:5000/api/leads/landing`
+  * `http://localhost:5000/api/v1/contact`
+* **Headers**: `Content-Type: application/json`
 
-**Sample Request Body:**
+#### Request Payload Sample
+
 ```json
 {
   "name": "Ramesh Kumar",
-  "phone": "+91 98765 43210",
-  "email": "ramesh@example.com",
+  "phone": "9876543210",
+  "email": "ramesh@gmail.com",
   "project_name": "Kyra Farmlands",
-  "budget_range": "₹35L - ₹50L",
-  "purpose": "farmhouse",
-  "intent": "site_visit",
-  "visit_date": "2026-10-25",
-  "message": "Interested in booking a weekend site visit.",
-  "page_url": "https://kyragroupindia.com"
+  "message": "Interested in booking a weekend site visit."
 }
 ```
 
-**Successful Response (`200 OK`):**
+> **Tip:** Change `"project_name"` to any project (e.g. `"Clevix Tech"`, `"Godrej Homes"`, `"Home Aura"`). The email subject line will automatically arrive as `[Your Project Name] New Lead: Ramesh Kumar (+91 9876543210)`.
+
+#### Response (`200 OK`)
+
 ```json
 {
   "success": true,
   "status": 200,
   "message": "Thank you for contacting us. We will get back to you soon.",
-  "lead_id": "6709a12bcde3456789012345",
-  "lead": {
-    "id": "6709a12bcde3456789012345",
-    "full_name": "Ramesh Kumar",
-    "phone": "9876543210",
-    "email": "ramesh@example.com",
+  "data": {
+    "name": "Ramesh Kumar",
+    "phone": "+91 9876543210",
+    "email": "ramesh@gmail.com",
     "project_name": "Kyra Farmlands",
-    "status": "new"
+    "email_status": "sent"
   }
 }
 ```
 
 ---
 
-### 2. Meta / Facebook Webhook Handshake
+### 2. cURL Example for Testing
 
-- **Endpoint**: `GET /api/webhooks/leads` (or `GET /api/v1/webhook`)
-- **Query Parameters**:
-  - `hub.mode=subscribe`
-  - `hub.verify_token=kyra_meta_webhook_secret_2026`
-  - `hub.challenge=<CHALLENGE_CODE>`
-
-**Response:** Returns `<CHALLENGE_CODE>` directly with `200 OK`.
-
----
-
-### 3. Meta / Facebook Webhook Lead Ingestion
-
-- **Endpoint**: `POST /api/webhooks/leads` (or `POST /api/v1/webhook`)
-- **Headers**: `Content-Type: application/json`
-- Ingests standard Meta Lead Ads webhook payload containing `leadgen_id` and dispatches email alert asynchronously.
-
----
-
-### 4. Health Check & Ping
-
-- `GET /api/health` $\rightarrow$ `{ "status": "ok", "uptime": 12.34 }`
-- `GET /api/ping` $\rightarrow$ `{ "status": 200, "message": "pong" }`
+```bash
+curl -X POST http://localhost:5000/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sujay Gowda",
+    "phone": "9876543210",
+    "email": "sujay@example.com",
+    "project_name": "Kyra Farmlands",
+    "message": "Hello from contact form"
+  }'
+```
