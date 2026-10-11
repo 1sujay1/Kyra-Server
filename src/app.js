@@ -12,23 +12,35 @@ if (env.NODE_ENV !== "test") {
 }
 
 // 2. CORS configuration
-const allowedOrigins = env.ALLOWED_ORIGINS === "*"
-  ? "*"
-  : env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
+const allowedOrigins =
+  env.ALLOWED_ORIGINS === "*"
+    ? "*"
+    : env.ALLOWED_ORIGINS.split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, server-to-server)
-      if (!origin || allowedOrigins === "*" || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins === "*" ||
+        allowedOrigins.includes(origin)
+      ) {
         return callback(null, true);
       }
       return callback(null, true); // Permissive CORS for landing pages
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
     credentials: true,
-  })
+  }),
 );
 
 // Explicit OPTIONS preflight handler
@@ -50,15 +62,6 @@ app.get("/", (req, res) => {
     name: "Kyra Group India - Backend API Server",
     version: "1.0.0",
     status: "online",
-    endpoints: {
-      landingLeadSubmission: "POST /api/leads/landing",
-      classicContactSubmission: "POST /api/v1/contact",
-      metaWebhookVerification: "GET /api/webhooks/leads?hub.mode=subscribe&hub.challenge=...&hub.verify_token=...",
-      metaWebhookIngestion: "POST /api/webhooks/leads",
-      healthCheck: "GET /api/health",
-      ping: "GET /api/ping",
-    },
-    docs: "See README.md for complete payload schemas and curl examples",
   });
 });
 
