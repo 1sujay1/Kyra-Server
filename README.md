@@ -1,4 +1,4 @@
-# Universal Contact Form Email Server
+# Universal Contact Form Email Server Automated
 
 Lightweight, high-performance Node.js/Express backend API server for handling **contact form submissions** across multiple websites and projects. Built with **Nodemailer (Gmail SMTP)** to dispatch instant, branded email notifications containing the buyer's contact details and dynamic **Project Name**.
 
@@ -89,12 +89,12 @@ npm start
 
 ### 1. Universal Contact Form Submission
 
-* **Method**: `POST`
-* **Endpoints** (all accept the exact same payload):
-  * `http://localhost:5000/api/contact`
-  * `http://localhost:5000/api/leads/landing`
-  * `http://localhost:5000/api/v1/contact`
-* **Headers**: `Content-Type: application/json`
+- **Method**: `POST`
+- **Endpoints** (all accept the exact same payload):
+  - `http://localhost:5000/api/contact`
+  - `http://localhost:5000/api/leads/landing`
+  - `http://localhost:5000/api/v1/contact`
+- **Headers**: `Content-Type: application/json`
 
 #### Request Payload Sample
 
